@@ -23,13 +23,13 @@ int duplicateRequest[9];
 void setupSockets();
 void mainLoop();
 void closeSockets();
-int deegreOfDanger(char* town);
+char* deegreOfDanger(char* town);
 void setDuplicateRequestZero();
 
 int main(int argc, char** argv){
 
 	port = 5000;
-	buffersize = 512;
+	buffersize = 256;
 
 	setDuplicateRequestZero();
 	setupSockets();
@@ -57,7 +57,7 @@ void setupSockets(){
 	//a socket bound with INADDR_ANY binds to the default IP address, which is that of the lowest-numbered interface
 	server_adress.sin_addr.s_addr = INADDR_ANY;
 	// alternative:
-	// inet_aton("63.161.169.137", &server_adress.sin_addr.s_addr);
+	//inet_aton("63.161.169.137", &server_adress.sin_addr);
 
 	int tmp = bind(socketfd, (struct sockaddr *) &server_adress, sizeof(server_adress));
 	if (tmp < 0){
@@ -95,10 +95,13 @@ void mainLoop(){
 	}
 
 	int running = 1;
-	int danger;
+	char* danger = (char*) malloc(sizeof(char));
 
 	while(running){
 		
+		//clear the input buffer
+		bzero(msg_buffer_in, buffersize);
+
 		//Read from Socket
 		n = read(newsocketfd, msg_buffer_in, buffersize-1);
 		if (n < 0){
@@ -106,17 +109,27 @@ void mainLoop(){
 			exit(0);
 		}
 
-		printf("Message: %s\n",msg_buffer_in);
+		//remove line breaks from msg_buffer_in
+		strtok(msg_buffer_in, "\n");
+		//get level of danger as string
 		danger = deegreOfDanger(msg_buffer_in);
-		printf("Danger for %s = %d \n",msg_buffer_in,danger);
 
-		//Write to Socket
-		msg_buffer_out = "Dangerlevel for .. is ..";
-		n = write(newsocketfd, msg_buffer_out, sizeof(char)*buffersize);
+		//clear the outputbuffer and fill with the new request
+		bzero(msg_buffer_out, buffersize);
+		strcpy(msg_buffer_out, "Dangerlevel for ");
+		strcat(msg_buffer_out, msg_buffer_in);
+		strcat(msg_buffer_out, " is ");
+		strcat(msg_buffer_out, danger);
+
+		// Write to socket
+		n = write(newsocketfd, msg_buffer_out, buffersize);
 		if (n < 0){
 			fprintf(stderr, "Error writing to Socket\n");
 			exit(0);
 		}
+
+		printf("message buffer in: %s\n",msg_buffer_in);
+		printf("message buffer out: %s\n",msg_buffer_out);
 
 	}
 }
@@ -127,40 +140,42 @@ void closeSockets(){
 	close(socketfd);
 }
 
-int deegreOfDanger(char* town){
+char* deegreOfDanger(char* town){
 
 	//convert town to lowercase
 	for(int i = 0; town[i]; i++){
 	  town[i] = tolower(town[i]);
 	}
 
-	if(strcmp(town, "bregenz\n") == 0 && duplicateRequest[0] == 0){
+	if(strcmp(town, "bregenz") == 0 && duplicateRequest[0] == 0){
 		duplicateRequest[0] = 1;
-		return 5;
-	} else if(strcmp(town, "eisenstadt\n") == 0 && duplicateRequest[1] == 0){
+		return "5";
+	} else if(strcmp(town, "eisenstadt") == 0 && duplicateRequest[1] == 0){
 		duplicateRequest[1] = 1;duplicateRequest[0] = 1;
-		return 7;
-	}else if(strcmp(town, "garz\n") == 0 && duplicateRequest[2] == 0){
+		return "7";
+	}else if(strcmp(town, "graz") == 0 && duplicateRequest[2] == 0){
 		duplicateRequest[2] = 1;
-		return 5;
-	}else if(strcmp(town, "innsbruck\n") == 0 && duplicateRequest[3] == 0){
+		return "5";
+	}else if(strcmp(town, "innsbruck") == 0 && duplicateRequest[3] == 0){
 		duplicateRequest[3] = 1;
-		return 2;
-	}else if(strcmp(town, "klagenfurt\n") == 0 && duplicateRequest[4] == 0){
+		return "2";
+	}else if(strcmp(town, "klagenfurt") == 0 && duplicateRequest[4] == 0){
 		duplicateRequest[4] = 1;
-		return 7;
-	}else if(strcmp(town, "linz\n") == 0 && duplicateRequest[5] == 0){
+		return "7";
+	}else if(strcmp(town, "linz") == 0 && duplicateRequest[5] == 0){
 		duplicateRequest[5] = 1;
-		return 7;
-	}else if(strcmp(town, "salzburg\n") == 0 && duplicateRequest[6] == 0){
+		return "7";
+	}else if(strcmp(town, "salzburg") == 0 && duplicateRequest[6] == 0){
 		duplicateRequest[6] = 1;
-		return 3;
-	} else if(strcmp(town, "stpoelten\n") == 0  && duplicateRequest[7] == 0){
+		return "3";
+	} else if(strcmp(town, "stpoelten") == 0  && duplicateRequest[7] == 0){
 		duplicateRequest[7] = 1;
-		return 4;
-	} else if(strcmp(town, "wien\n") == 0 && duplicateRequest[8] == 0){
+		return "4";
+	} else if(strcmp(town, "wien") == 0 && duplicateRequest[8] == 0){
 		duplicateRequest[8] = 1;
-		return 9;
+		return "9";
+	} else if(strcmp(town, "") == 0){
+		return "";
 	} else {
 		printf("%s\n", "Invalid Access, shuting socket server down");
 		closeSockets();
