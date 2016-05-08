@@ -1,3 +1,3 @@
-#Aufgabenblatt 6 - Rechnernetzte und Internettechnick
+#Aufgabenblatt 6 - Rechnernezte und Internettechnik
 ###Aufagbe 2 - Berkeley Sockets
  
