@@ -49,10 +49,8 @@ int main(int argc, char *argv[]){
         error("ERROR connecting");
 
 
-    // TO DO Syncronize
     for (int i = 3; i < argc; i++){
-        printf("request %s\n",argv[i]);
-
+        //printf("request %s\n",argv[i]);
         bzero(buffer,256);
         strcpy(buffer, argv[i]);
 
@@ -61,9 +59,12 @@ int main(int argc, char *argv[]){
              error("ERROR writing to socket");
 
         bzero(buffer,256);
-        n = read(sockfd,buffer,255);
-        if (n < 0) 
-             error("ERROR reading from socket");
+
+        while(strcmp(buffer, "") == 0){
+            n = read(sockfd,buffer,255);
+            if (n < 0) 
+                 error("ERROR reading from socket");
+        }
 
         printf("%s\n",buffer);
     }

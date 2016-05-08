@@ -103,12 +103,14 @@ void mainLoop(){
 		bzero(msg_buffer_in, buffersize);
 
 		//Read from Socket
-		n = read(newsocketfd, msg_buffer_in, buffersize-1);
-		if (n < 0){
-			fprintf(stderr, "Error reading from Socket\n");
-			exit(0);
+		while(strcmp(msg_buffer_in, "") == 0){
+			n = read(newsocketfd, msg_buffer_in, buffersize-1);
+			if (n < 0){
+				fprintf(stderr, "Error reading from Socket\n");
+				exit(0);
+			}
 		}
-
+		
 		//remove line breaks from msg_buffer_in
 		strtok(msg_buffer_in, "\n");
 		//get level of danger as string
@@ -177,7 +179,7 @@ char* deegreOfDanger(char* town){
 	} else if(strcmp(town, "") == 0){
 		return "";
 	} else {
-		printf("%s\n", "Invalid Access, shuting socket server down");
+		printf("Server going down, because of duplicate request\n");
 		closeSockets();
 		exit(0);
 	}
